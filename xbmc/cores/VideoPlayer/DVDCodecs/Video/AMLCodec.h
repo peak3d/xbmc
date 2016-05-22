@@ -53,25 +53,10 @@ public:
   int           Decode(uint8_t *pData, size_t size, double dts, double pts);
 
   bool          GetPicture(DVDVideoPicture* pDvdVideoPicture);
-  void          SetSpeed(int speed);
-  int           GetDataSize();
-  int           GetBufferLevel();
   double        GetTimeSize();
-  void          SetVideoRect(const CRect &SrcRect, const CRect &DestRect);
   void          SetDropState(bool bDrop);
 
-protected:
-  virtual void  Process();
-
 private:
-  void          SetVideoPtsSeconds(double pts);
-  void          ShowMainVideo(const bool show);
-  void          SetVideoZoom(const float zoom);
-  void          SetVideoContrast(const int contrast);
-  void          SetVideoBrightness(const int brightness);
-  void          SetVideoSaturation(const int saturation);
-  void          SetVideo3dMode(const int mode3d);
-  std::string   GetStereoMode();
   bool          OpenIonVideo(const CDVDStreamInfo &hints);
   bool          QueueFrame(VideoFramePtr frame);
   bool          DequeueFrame(VideoFramePtr &frame);
@@ -94,15 +79,9 @@ private:
   int64_t          m_start_pts;
   CEvent           m_ready_event;
 
-  CRect            m_dst_rect;
-  CRect            m_display_rect;
-
   int              m_view_mode;
   RENDER_STEREO_MODE m_stereo_mode;
   RENDER_STEREO_VIEW m_stereo_view;
-  float            m_zoom;
-  int              m_contrast;
-  int              m_brightness;
 
   PosixFilePtr               m_ionFile;
   PosixFilePtr               m_ionVideoFile;

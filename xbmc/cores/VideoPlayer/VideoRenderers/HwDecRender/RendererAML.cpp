@@ -131,13 +131,13 @@ bool CRendererAML::RenderUpdateVideoHook(bool clear, DWORD flags, DWORD alpha)
 {
   ManageRenderArea();
 
-  CDVDAmlogicInfo *amli = static_cast<CDVDAmlogicInfo *>(m_buffers[m_iYV12RenderBuffer].hwDec);
+  /*CDVDAmlogicInfo *amli = static_cast<CDVDAmlogicInfo *>(m_buffers[m_iYV12RenderBuffer].hwDec);
   if (amli)
   {
     CAMLCodec *amlcodec = amli->getAmlCodec();
     if (amlcodec)
       amlcodec->SetVideoRect(m_sourceRect, m_destRect);
-  }
+  }*/
 
   return true;
 }

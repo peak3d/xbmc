@@ -290,32 +290,6 @@ bool CDVDVideoCodecAmlogic::GetPicture(DVDVideoPicture* pDvdVideoPicture)
 {
   if (m_Codec)
     return m_Codec->GetPicture(pDvdVideoPicture);
-//  *pDvdVideoPicture = m_videobuffer;
-
-/*  CDVDAmlogicInfo* info = new CDVDAmlogicInfo(this, m_Codec);
-
-  {
-    CSingleLock lock(m_secure);
-    m_inflight.insert(info);
-  }
-
-  pDvdVideoPicture->amlcodec = info->Retain();
-
-  // check for mpeg2 aspect ratio changes
-  if (m_mpeg2_sequence && pDvdVideoPicture->pts >= m_mpeg2_sequence_pts)
-    m_aspect_ratio = m_mpeg2_sequence->ratio;
-
-  pDvdVideoPicture->iDisplayWidth  = pDvdVideoPicture->iWidth;
-  pDvdVideoPicture->iDisplayHeight = pDvdVideoPicture->iHeight;
-  if (m_aspect_ratio > 1.0 && !m_hints.forced_aspect)
-  {
-    pDvdVideoPicture->iDisplayWidth  = ((int)lrint(pDvdVideoPicture->iHeight * m_aspect_ratio)) & ~3;
-    if (pDvdVideoPicture->iDisplayWidth > pDvdVideoPicture->iWidth)
-    {
-      pDvdVideoPicture->iDisplayWidth  = pDvdVideoPicture->iWidth;
-      pDvdVideoPicture->iDisplayHeight = ((int)lrint(pDvdVideoPicture->iWidth / m_aspect_ratio)) & ~3;
-    }
-  }*/
 
   return false;
 }
@@ -334,16 +308,6 @@ void CDVDVideoCodecAmlogic::SetDropState(bool bDrop)
 
 void CDVDVideoCodecAmlogic::SetSpeed(int iSpeed)
 {
-  if (m_Codec)
-    m_Codec->SetSpeed(iSpeed);
-}
-
-int CDVDVideoCodecAmlogic::GetDataSize(void)
-{
-  if (m_Codec)
-    return m_Codec->GetDataSize();
-
-  return 0;
 }
 
 double CDVDVideoCodecAmlogic::GetTimeSize(void)
