@@ -312,9 +312,6 @@ void CDVDVideoCodecAmlogic::SetSpeed(int iSpeed)
 
 double CDVDVideoCodecAmlogic::GetTimeSize(void)
 {
-  if (m_Codec)
-    return m_Codec->GetTimeSize();
-
   return 0.0;
 }
 

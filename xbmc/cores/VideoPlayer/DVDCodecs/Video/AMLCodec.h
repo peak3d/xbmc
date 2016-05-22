@@ -53,7 +53,6 @@ public:
   int           Decode(uint8_t *pData, size_t size, double dts, double pts);
 
   bool          GetPicture(DVDVideoPicture* pDvdVideoPicture);
-  double        GetTimeSize();
   void          SetDropState(bool bDrop);
 
 private:

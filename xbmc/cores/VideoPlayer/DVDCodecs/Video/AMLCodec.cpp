@@ -916,7 +916,6 @@ int write_av_packet(am_private_t *para, am_packet_t *pkt)
         }
         pkt->newflag = 0;
     }
-	
     buf = pkt->data;
     size = pkt->data_size ;
     if (size == 0 && pkt->isvalid) {
@@ -1955,6 +1954,9 @@ bool CAMLCodec::DequeueFrame(VideoFramePtr &frame)
   }
 
   frame = m_videoFrames[vbuf.index];
+
+  CLog::Log(LOGDEBUG, "CAMLCodec::DequeueFrame - PTS: %lu", vbuf.timestamp.tv_usec);
+
   frame->SetPts((double)vbuf.timestamp.tv_usec/* / PTS_FREQ * DVD_TIME_BASE*/);
 
   return true;
@@ -2113,14 +2115,6 @@ int CAMLCodec::Decode(uint8_t *pData, size_t iSize, double dts, double pts)
       // Decoder got stuck; Reset
       Reset();
     }
-
-    // if we seek, then GetTimeSize is wrong as
-    // reports lastpts - cur_pts and hw decoder has
-    // not started outputing new pts values yet.
-    // so we grab the 1st pts sent into driver and
-    // use that to calc GetTimeSize.
-    if (m_1st_pts == 0)
-      m_1st_pts = am_private->am_pkt.lastpts;
   }
 
   if (!DequeueFrame(m_lastFrame))
@@ -2135,8 +2129,8 @@ int CAMLCodec::Decode(uint8_t *pData, size_t iSize, double dts, double pts)
   }
 /*
   CLog::Log(LOGDEBUG, "CAMLCodec::Decode: "
-    "rtn(%d), m_cur_pictcnt(%lld), m_cur_pts(%f), lastpts(%f), GetTimeSize(%f), GetDataSize(%d)",
-    rtn, m_cur_pictcnt, (float)m_cur_pts/PTS_FREQ, (float)am_private->am_pkt.lastpts/PTS_FREQ, GetTimeSize(), GetDataSize());
+    "rtn(%d), m_cur_pictcnt(%lld), m_cur_pts(%f), lastpts(%f), GetDataSize(%d)",
+    rtn, m_cur_pictcnt, (float)m_cur_pts/PTS_FREQ, (float)am_private->am_pkt.lastpts/PTS_FREQ, GetDataSize());
 */
   return rtn;
 }

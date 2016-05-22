@@ -52,6 +52,8 @@ extern "C" {
 #include "libswscale/swscale.h"
 }
 
+#define CLASSNAME "CLinuxRendererGLES"
+
 #if defined(__ARM_NEON__) && !defined(__LP64__)
 #include "yuv2rgb.neon.h"
 #include "utils/CPUInfo.h"
@@ -138,7 +140,7 @@ bool CLinuxRendererGLES::ValidateRenderTarget()
 {
   if (!m_bValidated)
   {
-    CLog::Log(LOGNOTICE,"Using GL_TEXTURE_2D");
+    CLog::Log(LOGNOTICE,"GLES - Using GL_TEXTURE_2D",CLASSNAME, __func__);
 
     // function pointer for texture might change in
     // call to LoadShaders
@@ -231,7 +233,7 @@ int CLinuxRendererGLES::GetImage(YV12Image *image, int source, bool readonly)
 
   if ((im.flags&(~IMAGE_FLAG_READY)) != 0)
   {
-     CLog::Log(LOGDEBUG, "CLinuxRenderer::GetImage - request image but none to give");
+     CLog::Log(LOGDEBUG, "%s::%s - request image but none to give", CLASSNAME, __func__);
      return -1;
   }
 
@@ -482,7 +484,7 @@ void CLinuxRendererGLES::RenderUpdate(bool clear, DWORD flags, DWORD alpha)
   }
 
   if ((flags & RENDER_FLAG_TOP) && (flags & RENDER_FLAG_BOT))
-    CLog::Log(LOGERROR, "GLES: Cannot render stipple!");
+    CLog::Log(LOGERROR, "%s::%s Cannot render stipple!", CLASSNAME, __func__);
   else
     Render(flags, index);
 
@@ -548,7 +550,7 @@ void CLinuxRendererGLES::UpdateVideoFilter()
 
   if(!Supports(m_scalingMethod))
   {
-    CLog::Log(LOGWARNING, "CLinuxRendererGLES::UpdateVideoFilter - choosen scaling method %d, is not supported by renderer", (int)m_scalingMethod);
+    CLog::Log(LOGWARNING, "%s::%s - choosen scaling method %d, is not supported by renderer", CLASSNAME, __func__, (int)m_scalingMethod);
     m_scalingMethod = VS_SCALINGMETHOD_LINEAR;
   }
 
@@ -575,21 +577,21 @@ void CLinuxRendererGLES::UpdateVideoFilter()
     return;
 
   case VS_SCALINGMETHOD_CUBIC:
-    CLog::Log(LOGERROR, "GLES: CUBIC not supported!");
+    CLog::Log(LOGERROR, "%s::%s - CUBIC not supported!", CLASSNAME, __func__);
     break;
 
   case VS_SCALINGMETHOD_LANCZOS2:
   case VS_SCALINGMETHOD_LANCZOS3:
   case VS_SCALINGMETHOD_SINC8:
   case VS_SCALINGMETHOD_NEDI:
-    CLog::Log(LOGERROR, "GL: TODO: This scaler has not yet been implemented");
+    CLog::Log(LOGERROR, "%s::%s - TODO: This scaler has not yet been implemented", CLASSNAME, __func__);
     break;
 
   default:
     break;
   }
 
-  CLog::Log(LOGERROR, "GL: Falling back to bilinear due to failure to init scaler");
+  CLog::Log(LOGERROR, "%s::%s - Falling back to bilinear due to failure to init scaler", CLASSNAME, __func__);
   if (m_pVideoFilterShader)
   {
     m_pVideoFilterShader->Free();
@@ -607,7 +609,7 @@ void CLinuxRendererGLES::LoadShaders(int field)
   if (!LoadShadersHook())
   {
     int requestedMethod = CSettings::GetInstance().GetInt(CSettings::SETTING_VIDEOPLAYER_RENDERMETHOD);
-    CLog::Log(LOGDEBUG, "GL: Requested render method: %d", requestedMethod);
+    CLog::Log(LOGDEBUG, "%s::%s - Requested render method: %d", CLASSNAME, __func__, requestedMethod);
 
     ReleaseShaders();
 
@@ -617,7 +619,7 @@ void CLinuxRendererGLES::LoadShaders(int field)
       case RENDER_METHOD_GLSL:
         if (m_format == RENDER_FMT_BYPASS)
         {
-          CLog::Log(LOGNOTICE, "GL: Using BYPASS render method");
+          CLog::Log(LOGNOTICE, "GLES - Using BYPASS render method");
           m_renderMethod = RENDER_BYPASS;
           break;
         }
@@ -626,7 +628,7 @@ void CLinuxRendererGLES::LoadShaders(int field)
         if (glCreateProgram)
         {
           // create regular scan shader
-          CLog::Log(LOGNOTICE, "GL: Selecting Single Pass YUV 2 RGB shader");
+          CLog::Log(LOGNOTICE, "GLES - Selecting Single Pass YUV 2 RGB shader");
 
           m_pYUVProgShader = new YUV2RGBProgressiveShader(false, m_iFlags, m_format);
           m_pYUVBobShader = new YUV2RGBBobShader(false, m_iFlags, m_format);
@@ -640,7 +642,7 @@ void CLinuxRendererGLES::LoadShaders(int field)
           else
           {
             ReleaseShaders();
-            CLog::Log(LOGERROR, "GL: Error enabling YUV2RGB GLSL shader");
+            CLog::Log(LOGERROR, "%s::%s - Error enabling YUV2RGB GLSL shader", CLASSNAME, __func__);
             m_renderMethod = -1;
             break;
           }
@@ -648,7 +650,7 @@ void CLinuxRendererGLES::LoadShaders(int field)
       default:
         {
           m_renderMethod = -1 ;
-          CLog::Log(LOGERROR, "GL: render method not supported");
+          CLog::Log(LOGERROR, "%s::%s - render method not supported", CLASSNAME, __func__);
         }
     }
   }
@@ -656,16 +658,16 @@ void CLinuxRendererGLES::LoadShaders(int field)
   // determine whether GPU supports NPOT textures
   if (!g_Windowing.IsExtSupported("GL_TEXTURE_NPOT"))
   {
-    CLog::Log(LOGNOTICE, "GL: GL_ARB_texture_rectangle not supported and OpenGL version is not 2.x");
-    CLog::Log(LOGNOTICE, "GL: Reverting to POT textures");
+    CLog::Log(LOGNOTICE, "GLES: GL_ARB_texture_rectangle not supported and OpenGL version is not 2.x");
+    CLog::Log(LOGNOTICE, "GLES: Reverting to POT textures");
     m_renderMethod |= RENDER_POT;
   }
   else
-    CLog::Log(LOGNOTICE, "GL: NPOT texture support detected");
+    CLog::Log(LOGNOTICE, "GLES: NPOT texture support detected");
 
   if (m_oldRenderMethod != m_renderMethod)
   {
-    CLog::Log(LOGDEBUG, "CLinuxRendererGLES: Reorder drawpoints due to method change from %i to %i", m_oldRenderMethod, m_renderMethod);
+    CLog::Log(LOGDEBUG, "%s::%s - Reorder drawpoints due to method change from %i to %i", CLASSNAME, __func__, m_oldRenderMethod, m_renderMethod);
     ReorderDrawPoints();
     m_oldRenderMethod = m_renderMethod;
   }
@@ -689,7 +691,7 @@ void CLinuxRendererGLES::ReleaseShaders()
 
 void CLinuxRendererGLES::UnInit()
 {
-  CLog::Log(LOGDEBUG, "LinuxRendererGL: Cleaning up GL resources");
+  CLog::Log(LOGDEBUG, "%s::%s - Cleaning up GL resources", CLASSNAME, __func__);
   CSingleLock lock(g_graphicsContext);
 
   if (m_rgbBuffer != NULL)
@@ -941,7 +943,7 @@ void CLinuxRendererGLES::RenderSinglePass(int index, int field)
 void CLinuxRendererGLES::RenderMultiPass(int index, int field)
 {
   // TODO: Multipass rendering does not currently work! FIX!
-  CLog::Log(LOGERROR, "GLES: MULTIPASS rendering was called! But it doesnt work!!!");
+  CLog::Log(LOGERROR, "%s::%s - MULTIPASS rendering was called! But it doesnt work!!!", CLASSNAME, __func__);
   return;
 
   YV12Image &im     = m_buffers[index].image;
@@ -979,7 +981,7 @@ void CLinuxRendererGLES::RenderMultiPass(int index, int field)
   // make sure the yuv shader is loaded and ready to go
   if (!m_pYUVProgShader || (!m_pYUVProgShader->OK()))
   {
-    CLog::Log(LOGERROR, "GL: YUV shader not active, cannot do multipass render");
+    CLog::Log(LOGERROR, "%s::%s - YUV shader not active, cannot do multipass render", CLASSNAME, __func__);
     return;
   }
 
@@ -1013,7 +1015,7 @@ void CLinuxRendererGLES::RenderMultiPass(int index, int field)
 
   if (!m_pYUVProgShader->Enable())
   {
-    CLog::Log(LOGERROR, "GL: Error enabling YUV shader");
+    CLog::Log(LOGERROR, "%s::%s - Error enabling YUV shader", CLASSNAME, __func__);
   }
 
 // 1st Pass to video frame size
@@ -1373,9 +1375,9 @@ bool CLinuxRendererGLES::CreateYV12Texture(int index)
       internalformat = GetInternalFormat(format, im.bpp);
 
       if(m_renderMethod & RENDER_POT)
-        CLog::Log(LOGDEBUG, "GL: Creating YUV POT texture of size %d x %d",  plane.texwidth, plane.texheight);
+        CLog::Log(LOGDEBUG, "%s::%s - Creating YUV POT texture of size %d x %d", CLASSNAME, __func__,  plane.texwidth, plane.texheight);
       else
-        CLog::Log(LOGDEBUG,  "GL: Creating YUV NPOT texture of size %d x %d", plane.texwidth, plane.texheight);
+        CLog::Log(LOGDEBUG,  "%s::%s - Creating YUV NPOT texture of size %d x %d", plane.texwidth, plane.texheight, CLASSNAME, __func__);
 
       glTexImage2D(m_textureTarget, 0, internalformat, plane.texwidth, plane.texheight, 0, format, GL_UNSIGNED_BYTE, NULL);
 

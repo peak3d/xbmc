@@ -52,9 +52,9 @@
 #if defined(HAS_IMXVPU)
 #include "HwDecRender/RendererIMX.h"
 #endif
-#if defined(HAS_LIBAMCODEC)
-#include "HwDecRender/RendererAML.h"
-#endif
+//#if defined(HAS_LIBAMCODEC)
+//#include "HwDecRender/RendererAML.h"
+//#endif
 #if defined(HAVE_LIBOPENMAX)
 #include "HwDecRender/RendererOpenMax.h"
 #endif
@@ -567,12 +567,12 @@ void CRenderManager::CreateRenderer()
       m_pRenderer = new CWinRenderer();
 #endif
     }
-    else if (m_format == RENDER_FMT_AML)
-    {
-#if defined(HAS_LIBAMCODEC)
-      m_pRenderer = new CRendererAML;
-#endif
-    }
+//    else if (m_format == RENDER_FMT_AML)
+//    {
+//#if defined(HAS_LIBAMCODEC)
+//      m_pRenderer = new CRendererAML;
+//#endif
+//    }
     else if (m_format != RENDER_FMT_NONE)
     {
 #if defined(HAS_MMAL)
