@@ -1,3 +1,3 @@
 xbmc/cores/RetroPlayer/process/amlogic cores/RetroPlayer/process/amlogic # AML
 xbmc/windowing/amlogic windowing/amlogic # AML
-
+xbmc/cores/VideoPlayer/process/amlogic cores/VideoPlayer/process/amlogic # AML

@@ -1,10 +1,12 @@
 set(SOURCES GLContextEGL.cpp
             WinSystemAmlogic.cpp
-            VideoSyncAML.cpp)
+            VideoSyncAML.cpp
+            VideoBufferION.cpp)
 
 set(HEADERS GLContextEGL.h
             WinSystemAmlogic.h
-            VideoSyncAML.h)
+            VideoSyncAML.h
+            VideoBufferION.h)
 
 if(OPENGLES_FOUND)
   list(APPEND SOURCES WinSystemAmlogicGLESContext.cpp)
