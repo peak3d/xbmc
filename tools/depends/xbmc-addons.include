@@ -64,7 +64,7 @@ ifeq ($(CROSS_COMPILING),yes)
 endif
 	cd $(PLATFORM); \
          $(CMAKE) -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) $(CMAKE_EXTRA) \
-         $(TOOLCHAIN) $(SRC_OVERRIDE) \
+         $(TOOLCHAIN) $(SRC_OVERRIDE) -DCMAKE_BUILD_TYPE=Debug \
          -DADDONS_TO_BUILD="$(ADDONS)" $(ADDON_PROJECT_DIR) -DBUILD_DIR=$(BUILDDIR)/$(PLATFORM)/build ;\
          for addon in $$($(MAKE) supported_addons | awk '/^ALL_ADDONS_BUILDING: .*$$/ { first = $$1; $$1 = ""; print $$0 }'); do \
            $(MAKE) $$addon && echo $$addon >> $(ADDON_PROJECT_DIR)/.success || echo $$addon >> $(ADDON_PROJECT_DIR)/.failure ;\

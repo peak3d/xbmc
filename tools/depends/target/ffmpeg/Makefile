@@ -20,6 +20,7 @@ ffmpg_config += --enable-muxer=asf --enable-muxer=ipod
 ffmpg_config += --enable-encoder=ac3 --enable-encoder=aac
 ffmpg_config += --enable-encoder=wmav2 --enable-protocol=http
 ffmpg_config += --enable-gnutls
+ffmpg_config += --enable-v4l2-m2m
 ffmpg_config += --enable-encoder=png --enable-encoder=mjpeg
 ffmpg_config += $(FFMPEG_CONFIGURE_OPTIONS)
 
@@ -76,6 +77,12 @@ $(PLATFORM): $(TARBALLS_LOCATION)/$(ARCHIVE) $(DEPS)
 	rm -rf $(PLATFORM); mkdir -p $(PLATFORM)
 	cd $(PLATFORM); $(ARCHIVE_TOOL) $(ARCHIVE_TOOL_FLAGS) $(TARBALLS_LOCATION)/$(ARCHIVE)
 	cd $(PLATFORM); sed -i".bak" -e "s%pkg_config_default=pkg-config%export PKG_CONFIG_LIBDIR=$(PREFIX)/lib/pkgconfig \&\& pkg_config_default=$(NATIVEPREFIX)/bin/pkg-config%" configure
+
+	cd $(PLATFORM); patch -p1 < ../ffmpeg-999-lrusak-v4l2.patch
+	cd $(PLATFORM); patch -p1 < ../ffmpeg-999-min-buffers.patch
+	cd $(PLATFORM); patch -p1 < ../ffmpeg-999-stfu.patch
+	cd $(PLATFORM); patch -p1 < ../ffmpeg-999-z-fixes.patch
+
 	cd $(PLATFORM);\
 	CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" \
 	./configure $(ffmpg_config)
