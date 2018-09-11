@@ -150,8 +150,11 @@ void CRendererDRMPRIME::Update()
 
 void CRendererDRMPRIME::RenderUpdate(int index, int index2, bool clear, unsigned int flags, unsigned int alpha)
 {
-  /*if (m_iLastRenderBuffer == index)
-    return;*/
+  if (m_iLastRenderBuffer == index && m_videoLayerBridge)
+  {
+    m_videoLayerBridge->UpdateVideoPlane();
+    return;
+  }
 
   CVideoBufferDRMPRIME* buffer = dynamic_cast<CVideoBufferDRMPRIME*>(m_buffers[index].videoBuffer);
   if (!buffer)
@@ -325,6 +328,16 @@ void CVideoLayerBridgeDRMPRIME::Unmap(CVideoBufferDRMPRIME* buffer)
 
 void CVideoLayerBridgeDRMPRIME::Configure(CVideoBufferDRMPRIME* buffer)
 {
+}
+
+void CVideoLayerBridgeDRMPRIME::UpdateVideoPlane()
+{
+  if (!m_buffer || !m_buffer->m_fb_id)
+    return;
+
+  struct plane* plane = m_DRM->GetPrimaryPlane();
+  m_DRM->AddProperty(plane, "FB_ID", m_buffer->m_fb_id);
+  m_DRM->AddProperty(plane, "CRTC_ID", m_DRM->GetCrtc()->crtc->crtc_id);
 }
 
 void CVideoLayerBridgeDRMPRIME::SetVideoPlane(CVideoBufferDRMPRIME* buffer, const CRect& destRect)

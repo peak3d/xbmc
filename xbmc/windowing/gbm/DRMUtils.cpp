@@ -553,6 +553,14 @@ bool CDRMUtils::InitDrm()
       return false;
     }
 
+#ifdef DRM_CLIENT_CAP_ASPECT_RATIO
+    ret = drmSetClientCap(m_fd, DRM_CLIENT_CAP_ASPECT_RATIO, 0);
+    if (ret < 0)
+    {
+      CLog::Log(LOGERROR, "CDRMUtils::%s - failed to set aspect ratio capability: %s", __FUNCTION__, strerror(errno));
+    }
+#endif
+
     if(!GetResources())
     {
       return false;
@@ -696,6 +704,7 @@ RESOLUTION_INFO CDRMUtils::GetResolutionInfo(drmModeModeInfoPtr mode)
 
   res.strMode = StringUtils::Format("%dx%d%s @ %.6f Hz", res.iScreenWidth, res.iScreenHeight,
                                     res.dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "", res.fRefreshRate);
+
   return res;
 }
 
