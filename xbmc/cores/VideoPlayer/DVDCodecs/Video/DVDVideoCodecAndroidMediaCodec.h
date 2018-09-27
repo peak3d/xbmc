@@ -12,6 +12,7 @@
 #include <vector>
 #include <memory>
 #include <atomic>
+#include <mutex>
 
 #include <androidjni/Surface.h>
 
@@ -65,7 +66,7 @@ public:
   CMediaCodecVideoBuffer(int id) : CVideoBuffer(id) {};
   virtual ~CMediaCodecVideoBuffer() {};
 
-  void Set(int internalId, int textureId,
+  void Set(int internalId, int textureId, int64_t pts,
    std::shared_ptr<CJNISurfaceTexture> surfaceTexture,
    std::shared_ptr<CDVDMediaCodecOnFrameAvailable> frameAvailable,
    std::shared_ptr<CJNIXBMCVideoView> videoView);
@@ -77,6 +78,7 @@ public:
   // SurfaceTexture released
   int                 GetBufferId() const;
   int                 GetTextureId() const;
+  int64_t             GetPts() const { return m_pts; };
   void                GetTransformMatrix(float *textureMatrix);
   void                UpdateTexImage();
   void                RenderUpdate(const CRect &DestRect, int64_t displayTime);
@@ -85,6 +87,7 @@ public:
 private:
   int                 m_bufferId = -1;
   unsigned int        m_textureId = 0;
+  int64_t             m_pts;
   // shared_ptr bits, shared between
   // CDVDVideoCodecAndroidMediaCodec and LinuxRenderGLES.
   std::shared_ptr<CJNISurfaceTexture> m_surfacetexture;
@@ -133,18 +136,28 @@ public:
   virtual void SetCodecControl(int flags) override;
   virtual unsigned GetAllowedReferences() override;
 
+  void AddInputBuffer(int index);
+  void AddOutputBuffer(CMediaCodecVideoBuffer *buffer);
+
+  CMediaCodecVideoBuffer *AllocateVideoBuffer(int index, AMediaCodecBufferInfo *bufferInfo);
+  void ConfigureOutputFormat(AMediaFormat* mediaformat);
+
 protected:
   void            Dispose();
   void            FlushInternal(void);
   bool            ConfigureMediaCodec(void);
-  int             GetOutputPicture(void);
-  void            ConfigureOutputFormat(AMediaFormat* mediaformat);
   void            UpdateFpsDuration();
 
   // surface handling functions
   static void     CallbackInitSurfaceTexture(void*);
   void            InitSurfaceTexture(void);
   void            ReleaseSurfaceTexture(void);
+
+  // async decoding
+  static void OnAsyncInputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata,int32_t index);
+  static void OnAsyncOutputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, int32_t index, AMediaCodecBufferInfo *bufferInfo);
+  static void OnAsyncFormatChanged(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, AMediaFormat *format);
+  static void OnAsyncError(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, media_status_t error, int32_t actionCode, const char *detail);
 
   CDVDStreamInfo  m_hints;
   std::string     m_mime;
@@ -177,7 +190,10 @@ protected:
   CBitstreamConverter *m_bitstream;
   VideoPicture m_videobuffer;
 
-  int             m_indexInputBuffer;
+  std::mutex m_bufferLock;
+  std::deque<int> m_inputBuffers;
+  std::deque<CMediaCodecVideoBuffer*> m_outputBuffers;
+
   bool            m_render_surface;
   mpeg2_sequence  *m_mpeg2_sequence;
   int             m_src_offset[4];
