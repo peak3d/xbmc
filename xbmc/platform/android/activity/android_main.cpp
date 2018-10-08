@@ -22,6 +22,7 @@
 #include "platform/android/activity/JNIXBMCSurfaceTextureOnFrameAvailableListener.h"
 #include "platform/android/activity/JNIXBMCNsdManagerDiscoveryListener.h"
 #include "platform/android/activity/JNIXBMCMediaSession.h"
+#include "platform/android/activity/JNIXBMCMediaCodecCallback.h"
 #include "platform/android/activity/JNIXBMCNsdManagerRegistrationListener.h"
 #include "platform/android/activity/JNIXBMCNsdManagerResolveListener.h"
 #include "platform/android/activity/JNIXBMCJsonHandler.h"
@@ -148,6 +149,7 @@ extern "C" JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved)
   jni::CJNIXBMCNsdManagerRegistrationListener::RegisterNatives(env);
   jni::CJNIXBMCNsdManagerResolveListener::RegisterNatives(env);
   jni::CJNIXBMCMediaSession::RegisterNatives(env);
+  jni::CJNIXBMCMediaCodecCallback::RegisterNatives(env);
   jni::CJNIXBMCJsonHandler::RegisterNatives(env);
   jni::CJNIXBMCFile::RegisterNatives(env);
 

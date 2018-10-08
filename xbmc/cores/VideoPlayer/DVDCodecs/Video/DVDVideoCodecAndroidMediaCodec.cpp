@@ -322,33 +322,32 @@ void CMediaCodecVideoBufferPool::ResetMediaCodec()
 
 
 /*****************************************************************************/
-/*
-void CDVDVideoCodecAndroidMediaCodec::OnAsyncInputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *instance,int32_t index)
+
+void CDVDVideoCodecAndroidMediaCodec::onError(const CJNIMediaCodec &codec)
 {
-  instance->AddInputBuffer(index);
+  CLog::Log(LOGERROR, "CDVDVideoCodecAndroidMediaCodec::onError");
 }
 
-void CDVDVideoCodecAndroidMediaCodec::OnAsyncOutputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *instance, int32_t index, AMediaCodecBufferInfo *bufferInfo)
+void CDVDVideoCodecAndroidMediaCodec::onInputBufferAvailable(const CJNIMediaCodec &codec, int index)
 {
-  instance->AddOutputBuffer(instance->AllocateVideoBuffer(index, bufferInfo));
+  AddInputBuffer(index);
 }
 
-void CDVDVideoCodecAndroidMediaCodecOnAsyncFormatChanged(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *instance, AMediaFormat *format)
+void CDVDVideoCodecAndroidMediaCodec::onOutputBufferAvailable(const CJNIMediaCodec &codec, int index, const CJNIMediaCodecBufferInfo &info)
 {
-  instance->ConfigureOutputFormat(format);
+  AddOutputBuffer(AllocateVideoBuffer(index, info));
 }
 
-void CDVDVideoCodecAndroidMediaCodec::OnAsyncError(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *instance, media_status_t error, int32_t actionCode, const char *detail)
+void CDVDVideoCodecAndroidMediaCodec::onOutputFormatChanged(const CJNIMediaCodec &codec, const CJNIMediaFormat &format)
 {
+  ConfigureOutputFormat(format);
 }
-*/
 
 void CDVDVideoCodecAndroidMediaCodec::AddInputBuffer(int index)
 {
   std::lock_guard<std::mutex> lock(m_bufferLock);
   m_inputBuffers.push_back(index);
 }
-
 
 void CDVDVideoCodecAndroidMediaCodec::AddOutputBuffer(CMediaCodecVideoBuffer *buffer)
 {
@@ -723,19 +722,17 @@ bool CDVDVideoCodecAndroidMediaCodec::Open(CDVDStreamInfo &hints, CDVDCodecOptio
   }
   if (!m_codec)
   {
-    CLog::Log(LOGERROR, "CDVDVideoCodecAndroidMediaCodec:: Failed to create Android MediaCodec");
+    CLog::Log(LOGERROR, "CDVDVideoCodecAndroidMediaCodec::Open Failed to create Android MediaCodec");
     goto FAIL;
   }
 
-  /*
-  AMediaCodecOnAsyncNotifyCallback callbacks;
-  callbacks.onAsyncInputAvailable = reinterpret_cast<AMediaCodecOnAsyncInputAvailable>(&CDVDVideoCodecAndroidMediaCodec::OnAsyncInputAvailable);
-  callbacks.onAsyncOutputAvailable = reinterpret_cast<AMediaCodecOnAsyncOutputAvailable>(&CDVDVideoCodecAndroidMediaCodec::OnAsyncOutputAvailable);
-  callbacks.onAsyncFormatChanged = reinterpret_cast<AMediaCodecOnAsyncFormatChanged>(&CDVDVideoCodecAndroidMediaCodec::OnAsyncFormatChanged);
-  callbacks.onAsyncError = reinterpret_cast<AMediaCodecOnAsyncError>(&CDVDVideoCodecAndroidMediaCodec::OnAsyncError);
-
-  AMediaCodec_setAsyncNotifyCallback(m_codec->codec(), callbacks,  this);
-  */
+  m_codec->setCallback(dynamic_cast<jni::CJNIXBMCMediaCodecCallback*>(this)->get_raw());
+  if (xbmc_jnienv()->ExceptionCheck())
+  {
+    xbmc_jnienv()->ExceptionClear();
+    CLog::Log(LOGERROR, "CDVDVideoCodecAndroidMediaCodec::Open Failed to register async callbacks");
+    goto FAIL;
+  }
 
   // setup a YUV420P VideoPicture buffer.
   // first make sure all properties are reset.
@@ -807,6 +804,7 @@ void CDVDVideoCodecAndroidMediaCodec::Dispose()
   if (m_codec)
   {
     m_codec->stop();
+    m_codec->release();
     m_codec = nullptr;
     m_state = MEDIACODEC_STATE_STOPPED;
   }
@@ -835,8 +833,8 @@ bool CDVDVideoCodecAndroidMediaCodec::AddData(const DemuxPacket &packet)
 
   double pts(packet.pts), dts(packet.dts);
 
-  if (g_advancedSettings.CanLogComponent(LOGVIDEO))
-    CLog::Log(LOGDEBUG, "CDVDVideoCodecAndroidMediaCodec::AddData dts:%0.2lf pts:%0.2lf sz:%d indexBuffer:%d current state (%d)", dts, pts, packet.iSize, m_state);
+  if (CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->CanLogComponent(LOGVIDEO))
+    CLog::Log(LOGDEBUG, "CDVDVideoCodecAndroidMediaCodec::AddData dts:%0.2lf pts:%0.2lf sz:%d current state (%d)", dts, pts, packet.iSize, m_state);
   else if (m_state != MEDIACODEC_STATE_RUNNING)
     CLog::Log(LOGDEBUG, "CDVDVideoCodecAndroidMediaCodec::AddData current state (%d)", m_state);
 
@@ -864,7 +862,6 @@ bool CDVDVideoCodecAndroidMediaCodec::AddData(const DemuxPacket &packet)
         indexInputBuffer = m_inputBuffers.front();
         m_inputBuffers.pop_front();
       }
-
       if (m_state == MEDIACODEC_STATE_FLUSHED)
         m_state = MEDIACODEC_STATE_RUNNING;
       if (!(m_state == MEDIACODEC_STATE_FLUSHED || m_state == MEDIACODEC_STATE_RUNNING))
@@ -993,8 +990,15 @@ void CDVDVideoCodecAndroidMediaCodec::Reset()
     m_state = MEDIACODEC_STATE_FLUSHED;
     m_codec->flush();
 
+    {
+      std::lock_guard<std::mutex> lock(m_bufferLock);
+      m_outputBuffers.clear();
+      m_inputBuffers.clear();
+    }
+
     // Invalidate our local VideoPicture bits
     m_videobuffer.pts = DVD_NOPTS_VALUE;
+    m_codec->start();
   }
 }
 
@@ -1010,11 +1014,10 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecAndroidMediaCodec::GetPicture(VideoPictur
     return VC_NONE;
 
   std::lock_guard<std::mutex> lock(m_bufferLock);
-  if (!m_outputBuffers.empty())
+  if (!m_inputBuffers.empty())
+    return VC_BUFFER;
+  else if (!m_outputBuffers.empty())
   {
-    if (pVideoPicture->videoBuffer)
-      pVideoPicture->videoBuffer->Release();
-
     CMediaCodecVideoBuffer *videoBuffer(m_outputBuffers.front());
     m_outputBuffers.pop_front();
 
@@ -1022,12 +1025,15 @@ CDVDVideoCodec::VCReturn CDVDVideoCodecAndroidMediaCodec::GetPicture(VideoPictur
     pVideoPicture->SetParams(m_videobuffer);
     pVideoPicture->videoBuffer = videoBuffer;
 
-    CLog::Log(LOGDEBUG, LOGVIDEO, "CDVDVideoCodecAndroidMediaCodec::GetPicture index: %d, pts:%0.4lf",
-      videoBuffer->GetBufferId(), m_videobuffer.pts);
+    CLog::Log(LOGDEBUG, LOGVIDEO, "CDVDVideoCodecAndroidMediaCodec::GetPicture MC-Id:%d, VB-Id:%d pts:%0.4lf",
+      videoBuffer->GetBufferId(),  videoBuffer->GetId(), m_videobuffer.pts);
 
     return VC_PICTURE;
   }
-  return m_inputBuffers.empty() ? VC_NONE : VC_BUFFER;
+  else
+  {
+    return VC_NONE;
+  }
 }
 
 void CDVDVideoCodecAndroidMediaCodec::SetCodecControl(int flags)
@@ -1155,10 +1161,9 @@ CMediaCodecVideoBuffer *CDVDVideoCodecAndroidMediaCodec::AllocateVideoBuffer(int
     return nullptr;
   }
 
-  if (m_videobuffer.videoBuffer)
-    m_videobuffer.videoBuffer->Release();
-
   CMediaCodecVideoBuffer *videoBuffer = static_cast<CMediaCodecVideoBuffer*>(m_videoBufferPool->Get());
+  CLog::Log(LOGDEBUG, "CDVDVideoCodecAndroidMediaCodec::AllocateVideoBuffer MC-Id:%d, VB-Id:%d", index, videoBuffer->GetId());
+
   videoBuffer->Set(index,
     m_textureId,
     bufferInfo.presentationTimeUs(),

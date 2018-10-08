@@ -9,6 +9,7 @@ set(SOURCES android_main.cpp
             JNIMainActivity.cpp
             JNIXBMCMainView.cpp
             JNIXBMCMediaSession.cpp
+            JNIXBMCMediaCodecCallback.cpp
             JNIXBMCVideoView.cpp
             JNIXBMCAudioManagerOnAudioFocusChangeListener.cpp
             JNIXBMCSurfaceTextureOnFrameAvailableListener.cpp
@@ -34,6 +35,7 @@ set(HEADERS AndroidExtra.h
             JNIMainActivity.h
             JNIXBMCMainView.h
             JNIXBMCMediaSession.h
+            JNIXBMCMediaCodecCallback.h
             JNIXBMCVideoView.h
             JNIXBMCAudioManagerOnAudioFocusChangeListener.h
             JNIXBMCSurfaceTextureOnFrameAvailableListener.h

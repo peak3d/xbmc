@@ -19,6 +19,7 @@
 #include "DVDVideoCodec.h"
 #include "DVDStreamInfo.h"
 #include "platform/android/activity/JNIXBMCVideoView.h"
+#include "platform/android/activity/JNIXBMCMediaCodecCallback.h"
 #include "threads/Thread.h"
 #include "threads/SingleLock.h"
 #include "utils/Geometry.h"
@@ -26,7 +27,6 @@
 
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
-
 
 class CJNISurface;
 class CJNISurfaceTexture;
@@ -107,7 +107,7 @@ private:
   std::vector<int> m_freeBuffers;
 };
 
-class CDVDVideoCodecAndroidMediaCodec : public CDVDVideoCodec, public CJNISurfaceHolderCallback
+class CDVDVideoCodecAndroidMediaCodec : public CDVDVideoCodec, public CJNISurfaceHolderCallback, public jni::CJNIXBMCMediaCodecCallback
 {
 public:
   CDVDVideoCodecAndroidMediaCodec(CProcessInfo &processInfo, bool surface_render = false);
@@ -144,13 +144,11 @@ protected:
   void            InitSurfaceTexture(void);
   void            ReleaseSurfaceTexture(void);
 
-  // async decoding
-  /*
-  static void OnAsyncInputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata,int32_t index);
-  static void OnAsyncOutputAvailable(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, int32_t index, AMediaCodecBufferInfo *bufferInfo);
-  static void OnAsyncFormatChanged(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, AMediaFormat *format);
-  static void OnAsyncError(AMediaCodec *codec, CDVDVideoCodecAndroidMediaCodec *userdata, media_status_t error, int32_t actionCode, const char *detail);
-  */
+  // MediaCodecCallback
+  void onError(const CJNIMediaCodec &codec) override;
+  void onInputBufferAvailable(const CJNIMediaCodec &codec, int index) override;
+  void onOutputBufferAvailable(const CJNIMediaCodec &codec, int index, const CJNIMediaCodecBufferInfo &info) override;
+  void onOutputFormatChanged(const CJNIMediaCodec &codec, const CJNIMediaFormat &format) override;
 
   CDVDStreamInfo  m_hints;
   std::string     m_mime;
