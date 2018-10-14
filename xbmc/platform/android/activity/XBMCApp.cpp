@@ -1181,6 +1181,11 @@ void CXBMCApp::DeinitFrameCallback()
 
 void CXBMCApp::doFrame(int64_t frameTimeNanos)
 {
+  // Calculate the time, when next surface buffer should be rendered
+  static int64_t lastFrameTimeNanos(0);
+  CLog::Log(LOGDEBUG, "CXBMCApp::doFrame %lld (%lld)", frameTimeNanos, frameTimeNanos-lastFrameTimeNanos);
+  lastFrameTimeNanos = frameTimeNanos;
+
   if (m_syncImpl)
     m_syncImpl->FrameCallback(frameTimeNanos);
 
