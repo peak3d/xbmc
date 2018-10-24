@@ -373,6 +373,11 @@ public:
   static const std::string SETTING_SOURCE_VIDEOS;
   static const std::string SETTING_SOURCE_MUSIC;
   static const std::string SETTING_SOURCE_PICTURES;
+  // values for SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS
+  static const int VIDEOLIBRARY_PLOTS_SHOW_ALL = 0;
+  static const int VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_MOVIES = 1;
+  static const int VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_TVSHOWEPISODES = 2;
+  static const int VIDEOLIBRARY_PLOTS_HIDE_ALL = 3;
 
   /*!
    \brief Creates a new settings wrapper around a new settings manager.

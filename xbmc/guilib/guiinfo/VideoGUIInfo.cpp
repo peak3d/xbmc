@@ -330,18 +330,22 @@ bool CVideoGUIInfo::GetLabel(std::string& value, const CFileItem *item, int cont
         }
         break;
       case LISTITEM_PLOT:
-        if (tag->m_type != MediaTypeTvShow &&
-            tag->m_type != MediaTypeVideoCollection &&
-            tag->GetPlayCount() == 0 &&
-            !CServiceBroker::GetSettingsComponent()->GetSettings()->GetBool(CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS))
         {
-          value = g_localizeStrings.Get(20370);
+          int iShowPlot = CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOLIBRARY_SHOWUNWATCHEDPLOTS);
+          if (tag->m_type != MediaTypeTvShow &&
+              tag->m_type != MediaTypeVideoCollection &&
+              tag->GetPlayCount() == 0 &&
+              ((tag->m_type == MediaTypeMovie && (iShowPlot == CSettings::VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_TVSHOWEPISODES || iShowPlot == CSettings::VIDEOLIBRARY_PLOTS_HIDE_ALL)) || // show plot for unwatched movies
+              (tag->m_type == MediaTypeEpisode && (iShowPlot == CSettings::VIDEOLIBRARY_PLOTS_SHOW_UNWATCHED_MOVIES || iShowPlot == CSettings::VIDEOLIBRARY_PLOTS_HIDE_ALL)))) // show plot for unwatched tv show episodes
+          {
+            value = g_localizeStrings.Get(20370);
+          }
+          else
+          {
+            value = tag->m_strPlot;
+          }
+          return true;
         }
-        else
-        {
-          value = tag->m_strPlot;
-        }
-        return true;
       case LISTITEM_STATUS:
         value = tag->m_strStatus;
         return true;
