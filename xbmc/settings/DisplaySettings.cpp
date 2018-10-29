@@ -498,10 +498,13 @@ void CDisplaySettings::ApplyCalibrations()
     // find resolutions
     for (size_t res = 0; res < m_resolutions.size(); ++res)
     {
+      CLog::Log(LOGDEBUG, "CDisplaySettings::ApplyCalibrations %s %s", itCal->strMode.c_str(), m_resolutions[res].strMode.c_str());
+
       if (res == RES_WINDOW)
         continue;
       if (StringUtils::EqualsNoCase(itCal->strMode, m_resolutions[res].strMode))
       {
+        CLog::Log(LOGDEBUG, "CDisplaySettings::ApplyCalibrations hit!");
         // overscan
         m_resolutions[res].Overscan.left = itCal->Overscan.left;
         if (m_resolutions[res].Overscan.left < -m_resolutions[res].iWidth/4)
