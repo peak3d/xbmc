@@ -402,6 +402,14 @@ void CSettingList::Reset()
   SetValue(values);
 }
 
+bool CSettingList::FindIntInList(int value) const
+{
+  for (const auto item : m_values)
+    if (item->GetType() == SettingType::Integer && std::static_pointer_cast<CSettingInt>(item)->GetValue() == value)
+      return true;
+  return false;
+}
+
 bool CSettingList::FromString(const std::vector<std::string> &value)
 {
   SettingList values;
