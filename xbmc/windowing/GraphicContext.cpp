@@ -667,8 +667,8 @@ void CGraphicContext::GetGUIScaling(const RESOLUTION_INFO &res, float &scaleX, f
     float fFromHeight = (float)res.iHeight;
     float fToPosX     = (float)info.Overscan.left;
     float fToPosY     = (float)info.Overscan.top;
-    float fToWidth    = (float)info.Overscan.right  - fToPosX;
-    float fToHeight   = (float)info.Overscan.bottom - fToPosY;
+    float fToWidth    = (float)info.iWidth; //info.Overscan.right  - fToPosX;
+    float fToHeight   = (float)info.iHeight;//info.Overscan.bottom - fToPosY;
 
     float fZoom = (100 + CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_LOOKANDFEEL_SKINZOOM)) * 0.01f;
 

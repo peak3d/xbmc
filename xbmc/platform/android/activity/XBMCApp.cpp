@@ -591,7 +591,6 @@ void CXBMCApp::SetDisplayMode(int mode, float rate)
   if (window)
   {
     CJNIWindowManagerLayoutParams params = window.getAttributes();
-    CLog::Log(LOGDEBUG, "XXX %d %d", params.getpreferredDisplayModeId(), mode);
     if (params.getpreferredDisplayModeId() == mode)
       return;
   }
