@@ -455,9 +455,31 @@ void CLinuxRendererGLES::UpdateVideoFilter()
   {
   case VS_SCALINGMETHOD_NEAREST:
   {
-    CLog::Log(LOGNOTICE, "GLES: Selecting single pass rendering");
-    SetTextureFilter(GL_NEAREST);
-    m_renderQuality = RQ_SINGLEPASS;
+    if (m_renderMethod & RENDER_GLSL)
+    {
+      if (!m_fbo.fbo.Initialize())
+      {
+        CLog::Log(LOGERROR, "GLES: Error initializing FBO");
+        break;
+      }
+
+      if (!m_fbo.fbo.CreateAndBindToTexture(GL_TEXTURE_2D, m_sourceWidth, m_sourceHeight, GL_RGBA))
+      {
+        CLog::Log(LOGERROR, "GLES: Error creating texture and binding to FBO");
+        break;
+      }
+    }
+
+    m_pVideoFilterShader = new DefaultFilterShader();
+    if (!m_pVideoFilterShader->CompileAndLink())
+    {
+      CLog::Log(LOGERROR, "GLES: Error compiling and linking video filter shader");
+      break;
+    }
+
+    CLog::Log(LOGNOTICE, "GLES: Selecting multi pass rendering");
+    SetTextureFilter(GL_LINEAR);
+    m_renderQuality = RQ_MULTIPASS;
     return;
   }
   case VS_SCALINGMETHOD_LINEAR:

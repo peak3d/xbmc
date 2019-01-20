@@ -149,8 +149,9 @@ void CGUIWindowDebugInfo::Process(unsigned int currentTime, CDirtyRegionList &di
   }
 
   float w, h;
-  if (m_layout->Update(info))
-    MarkDirtyRegion();
+  m_layout->Update(info);
+  MarkDirtyRegion();
+
   m_layout->GetTextExtent(w, h);
 
   float x = xShift + 0.04f * CServiceBroker::GetWinSystem()->GetGfxContext().GetWidth();
