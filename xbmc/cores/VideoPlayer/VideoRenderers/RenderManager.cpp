@@ -676,7 +676,10 @@ RESOLUTION CRenderManager::GetResolution()
     return res;
 
   if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF)
+  {
+    CLog::Log(LOGDEBUG, "ChooseBest %s, fps:%0.4f, w:%d, h:%d", __FUNCTION__, m_fps, m_width, m_height);
     res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, m_height, !m_stereomode.empty());
+  }
 
   return res;
 }
@@ -865,6 +868,7 @@ void CRenderManager::UpdateResolution()
     {
       if (CServiceBroker::GetSettingsComponent()->GetSettings()->GetInt(CSettings::SETTING_VIDEOPLAYER_ADJUSTREFRESHRATE) != ADJUST_REFRESHRATE_OFF && m_fps > 0.0f)
       {
+        CLog::Log(LOGDEBUG, "ChooseBest %s, fps:%0.4f, w:%d, h:%d", __FUNCTION__, m_fps, m_width, m_height);
         RESOLUTION res = CResolutionUtils::ChooseBestResolution(m_fps, m_width, m_height, !m_stereomode.empty());
         CServiceBroker::GetWinSystem()->GetGfxContext().SetVideoResolution(res, false);
         UpdateLatencyTweak();
