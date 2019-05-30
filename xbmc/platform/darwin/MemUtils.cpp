@@ -9,24 +9,15 @@
 #include "utils/MemUtils.h"
 
 #include <array>
+#include <cstdlib>
 #include <cstring>
-#include <stdlib.h>
+
 #include <stdio.h>
 #include <unistd.h>
 
-#include <sys/types.h>
-
-#if !defined(TARGET_ANDROID)
-#include <sys/sysctl.h>
-#endif
-
-#if defined(TARGET_LINUX)
-#include <sys/sysinfo.h>
-#endif
-
-#if defined(TARGET_DARWIN)
 #include <mach/mach.h>
-#endif
+#include <sys/sysctl.h>
+#include <sys/types.h>
 
 #undef ALIGN
 #define ALIGN(value, alignment) (((value)+(alignment-1))&~(alignment-1))
@@ -63,9 +54,6 @@ void GetMemoryStatus(MemoryStatus* buffer)
   if (!buffer)
     return;
 
-  std::memset(buffer, 0, sizeof(MemoryStatus));
-
-#if defined(TARGET_DARWIN)
   uint64_t physmem;
   size_t len = sizeof physmem;
 
@@ -125,50 +113,6 @@ void GetMemoryStatus(MemoryStatus* buffer)
           buffer->availVirtual  = buffer->availPhys; // FIXME.
       }
   }
-#elif defined(TARGET_FREEBSD)
-  /* sysctl hw.physmem */
-  size_t physmem = 0, mem_free = 0, pagesize = 0, swap_free = 0;
-  size_t mem_inactive = 0, mem_cache = 0, len = 0;
-
-  /* physmem */
-  len = sizeof(physmem);
-  if (sysctlbyname("hw.physmem", &physmem, &len, NULL, 0) == 0) {
-    buffer->totalPhys = physmem;
-    buffer->totalVirtual = physmem;
-  }
-  /* pagesize */
-  len = sizeof(pagesize);
-  if (sysctlbyname("hw.pagesize", &pagesize, &len, NULL, 0) != 0)
-    pagesize = 4096;
-  /* mem_inactive */
-  len = sizeof(mem_inactive);
-  if (sysctlbyname("vm.stats.vm.v_inactive_count", &mem_inactive, &len, NULL, 0) == 0)
-    mem_inactive *= pagesize;
-  /* mem_cache */
-  len = sizeof(mem_cache);
-  if (sysctlbyname("vm.stats.vm.v_cache_count", &mem_cache, &len, NULL, 0) == 0)
-    mem_cache *= pagesize;
-  /* mem_free */
-  len = sizeof(mem_free);
-  if (sysctlbyname("vm.stats.vm.v_free_count", &mem_free, &len, NULL, 0) == 0)
-    mem_free *= pagesize;
-
-  /* mem_avail = mem_inactive + mem_cache + mem_free */
-  buffer->availPhys = mem_inactive + mem_cache + mem_free;
-  buffer->availVirtual = mem_inactive + mem_cache + mem_free;
-
-  if (sysctlbyname("vm.stats.vm.v_swappgsout", &swap_free, &len, NULL, 0) == 0)
-    buffer->availPageFile = swap_free * pagesize;
-#else
-  struct sysinfo info;
-  sysinfo(&info);
-
-  buffer->availPageFile = (info.freeswap * info.mem_unit);
-  buffer->availPhys = ((info.freeram + info.bufferram) * info.mem_unit);
-  buffer->availVirtual = ((info.freeram + info.bufferram) * info.mem_unit);
-  buffer->totalPhys = (info.totalram * info.mem_unit);
-  buffer->totalVirtual = (info.totalram * info.mem_unit);
-#endif
 }
 
 }
