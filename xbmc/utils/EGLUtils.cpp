@@ -301,7 +301,7 @@ bool CEGLContextUtils::InitializeDisplay(EGLint renderingApi)
   return true;
 }
 
-bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
+bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool hdr)
 {
   EGLint numMatched{0};
 
@@ -310,24 +310,28 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
     throw std::logic_error("Choosing an EGLConfig requires an EGL display");
   }
 
-  EGLint surfaceType = EGL_WINDOW_BIT;
+  EGLint surfaceType = EGL_WINDOW_BIT | EGL_PBUFFER_BIT;
   // for the non-trivial dirty region modes, we need the EGL buffer to be preserved across updates
   int guiAlgorithmDirtyRegions = CServiceBroker::GetSettingsComponent()->GetAdvancedSettings()->m_guiAlgorithmDirtyRegions;
   if (guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_COST_REDUCTION ||
       guiAlgorithmDirtyRegions == DIRTYREGION_SOLVER_UNION)
     surfaceType |= EGL_SWAP_BEHAVIOR_PRESERVED_BIT;
 
-  CEGLAttributes<10> attribs;
+  CEGLAttributesVec attribs;
   attribs.Add({{EGL_RED_SIZE, 8},
                {EGL_GREEN_SIZE, 8},
                {EGL_BLUE_SIZE, 8},
-               {EGL_ALPHA_SIZE, 2},
+               {EGL_ALPHA_SIZE, 8},
                {EGL_DEPTH_SIZE, 16},
                {EGL_STENCIL_SIZE, 0},
                {EGL_SAMPLE_BUFFERS, 0},
                {EGL_SAMPLES, 0},
                {EGL_SURFACE_TYPE, surfaceType},
                {EGL_RENDERABLE_TYPE, renderableType}});
+
+  EGLConfig* currentConfig(hdr ? &m_eglHDRConfig : &m_eglConfig);
+  if (hdr)
+    attribs.Add({{EGL_COLOR_COMPONENT_TYPE_EXT, EGL_COLOR_COMPONENT_TYPE_FLOAT_EXT}});
 
   if (eglChooseConfig(m_eglDisplay, attribs.Get(), nullptr, 0, &numMatched) != EGL_TRUE)
   {
@@ -348,12 +352,12 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
   EGLint id{0};
   for (const auto &eglConfig: eglConfigs)
   {
-    m_eglConfig = eglConfig;
+    *currentConfig = eglConfig;
 
     if (visualId == 0)
       break;
 
-    if (eglGetConfigAttrib(m_eglDisplay, m_eglConfig, EGL_NATIVE_VISUAL_ID, &id) != EGL_TRUE)
+    if (eglGetConfigAttrib(m_eglDisplay, *currentConfig, EGL_NATIVE_VISUAL_ID, &id) != EGL_TRUE)
       CEGLUtils::LogError("failed to query EGL attibute EGL_NATIVE_VISUAL_ID");
 
     if (visualId == id)
@@ -366,12 +370,12 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId)
     return false;
   }
 
-  CLog::Log(LOGDEBUG, "EGL Config Attributes:");
+  CLog::Log(LOGDEBUG, "EGL %sConfig Attributes:", hdr ? "HDR " : "");
 
   for (const auto &eglAttribute : eglAttributes)
   {
     EGLint value{0};
-    if (eglGetConfigAttrib(m_eglDisplay, m_eglConfig, eglAttribute.first, &value) != EGL_TRUE)
+    if (eglGetConfigAttrib(m_eglDisplay, *currentConfig, eglAttribute.first, &value) != EGL_TRUE)
       CEGLUtils::LogError(StringUtils::Format("failed to query EGL attibute %s", eglAttribute.second));
 
     // we only need to print the hex value if it's an actual EGL define
@@ -473,7 +477,15 @@ void CEGLContextUtils::SurfaceAttrib()
   }
 }
 
-bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow)
+void CEGLContextUtils::SurfaceAttrib(EGLint attribute, EGLint value)
+{
+  if (eglSurfaceAttrib(m_eglDisplay, m_eglSurface, attribute, value) != EGL_TRUE)
+  {
+    CEGLUtils::LogError("failed to set EGL_BUFFER_PRESERVED swap behavior");
+  }
+}
+
+bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow, EGLint HDRcolorSpace /* = EGL_NONE */)
 {
   if (m_eglDisplay == EGL_NO_DISPLAY)
   {
@@ -484,7 +496,16 @@ bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow)
     throw std::logic_error("Do not call CreateSurface when surface has already been created");
   }
 
-  m_eglSurface = eglCreateWindowSurface(m_eglDisplay, m_eglConfig, nativeWindow, nullptr);
+  CEGLAttributesVec attribs;
+  EGLConfig config = m_eglConfig;
+
+  if (HDRcolorSpace != EGL_NONE)
+  {
+    attribs.Add({EGL_GL_COLORSPACE_KHR, HDRcolorSpace});
+    config = m_eglHDRConfig;
+  }
+
+  m_eglSurface = eglCreateWindowSurface(m_eglDisplay, config, nativeWindow, attribs.Get());
 
   if (m_eglSurface == EGL_NO_SURFACE)
   {

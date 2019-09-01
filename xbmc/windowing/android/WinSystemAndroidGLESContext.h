@@ -13,6 +13,8 @@
 #include "utils/EGLUtils.h"
 #include "utils/GlobalsHandling.h"
 
+struct AVMasteringDisplayMetadata;
+
 class CWinSystemAndroidGLESContext : public CWinSystemAndroid, public CRenderSystemGLES
 {
 public:
@@ -32,6 +34,7 @@ public:
   virtual std::unique_ptr<CVideoSync> GetVideoSync(void *clock) override;
 
   float GetFrameLatencyAdjustment() override;
+  bool SetHDR(const VideoPicture* videoPicture) override;
 
   EGLDisplay GetEGLDisplay() const;
   EGLSurface GetEGLSurface() const;
@@ -42,6 +45,12 @@ protected:
   void PresentRenderImpl(bool rendered) override;
 
 private:
-  CEGLContextUtils m_pGLContext;
+  bool CreateSurface();
 
+  CEGLContextUtils m_pGLContext;
+  bool m_hasHDRConfig = false;
+
+  std::unique_ptr<AVMasteringDisplayMetadata> m_displayMetadata;
+  EGLint m_HDRColorSpace = EGL_NONE;
+  bool m_hasEGLHDRExtensions = false;
 };
