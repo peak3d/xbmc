@@ -14,6 +14,7 @@
 #include "utils/GlobalsHandling.h"
 
 struct AVMasteringDisplayMetadata;
+struct AVContentLightMetadata;
 
 class CWinSystemAndroidGLESContext : public CWinSystemAndroid, public CRenderSystemGLES
 {
@@ -51,6 +52,7 @@ private:
   bool m_hasHDRConfig = false;
 
   std::unique_ptr<AVMasteringDisplayMetadata> m_displayMetadata;
+  std::unique_ptr<AVContentLightMetadata> m_lightMetadata;
   EGLint m_HDRColorSpace = EGL_NONE;
   bool m_hasEGLHDRExtensions = false;
 };

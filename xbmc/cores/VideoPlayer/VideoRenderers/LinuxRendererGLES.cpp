@@ -116,7 +116,7 @@ bool CLinuxRendererGLES::ValidateRenderTarget()
 
 bool CLinuxRendererGLES::Configure(const VideoPicture &picture, float fps, unsigned int orientation)
 {
-  CLog::Log(LOGDEBUG, "LinuxRendererGLES: Configire with HDR metadad: %s", (picture.hasDisplayMetadata && picture.hasLightMetadata) ? "true" : "false");
+  CLog::Log(LOGDEBUG, "LinuxRendererGLES: Configure with HDR metadata: %s", (picture.hasDisplayMetadata && picture.hasLightMetadata) ? "true" : "false");
   m_format = picture.videoBuffer->GetFormat();
   m_sourceWidth = picture.iWidth;
   m_sourceHeight = picture.iHeight;

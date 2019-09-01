@@ -160,6 +160,7 @@ bool CWinSystemAndroidGLESContext::CreateSurface()
     {
       m_HDRColorSpace = EGL_NONE;
       m_displayMetadata = nullptr;
+      m_lightMetadata = nullptr;
       if (!m_pGLContext.CreateSurface(m_nativeWindow))
         return false;
     }
@@ -181,6 +182,11 @@ bool CWinSystemAndroidGLESContext::CreateSurface()
     m_pGLContext.SurfaceAttrib(EGL_SMPTE2086_MAX_LUMINANCE_EXT, static_cast<int>(av_q2d(m_displayMetadata->max_luminance) * EGL_METADATA_SCALING_EXT + 0.5));
     m_pGLContext.SurfaceAttrib(EGL_SMPTE2086_MIN_LUMINANCE_EXT, static_cast<int>(av_q2d(m_displayMetadata->min_luminance) * EGL_METADATA_SCALING_EXT + 0.5));
   }
+  if (m_lightMetadata)
+  {
+    m_pGLContext.SurfaceAttrib(EGL_CTA861_3_MAX_CONTENT_LIGHT_LEVEL_EXT, static_cast<int>(m_lightMetadata->MaxCLL * EGL_METADATA_SCALING_EXT));
+    m_pGLContext.SurfaceAttrib(EGL_CTA861_3_MAX_FRAME_AVERAGE_LEVEL_EXT, static_cast<int>(m_lightMetadata->MaxFALL * EGL_METADATA_SCALING_EXT));
+  }
 #endif
   return true;
 }
@@ -201,10 +207,14 @@ bool CWinSystemAndroidGLESContext::SetHDR(const VideoPicture *videoPicture)
       break;
     default:
       m_displayMetadata = nullptr;
+      m_lightMetadata = nullptr;
     }
   }
   else
+  {
     m_displayMetadata = nullptr;
+    m_lightMetadata = nullptr;
+  }
 
   if (HDRColorSpace != m_HDRColorSpace)
   {
@@ -212,7 +222,8 @@ bool CWinSystemAndroidGLESContext::SetHDR(const VideoPicture *videoPicture)
 
     m_HDRColorSpace = HDRColorSpace;
     m_displayMetadata = m_HDRColorSpace == EGL_NONE ? nullptr : std::unique_ptr<AVMasteringDisplayMetadata>(new AVMasteringDisplayMetadata(videoPicture->displayMetadata));
-
+    // TODO: discuss with NVIDIA why this prevent turning HDR display off
+    //m_lightMetadata = !videoPicture || m_HDRColorSpace == EGL_NONE ? nullptr : std::unique_ptr<AVContentLightMetadata>(new AVContentLightMetadata(videoPicture->lightMetadata));
     m_pGLContext.DestroySurface();
     CreateSurface();
     m_pGLContext.BindContext();

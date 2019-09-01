@@ -989,8 +989,6 @@ bool CDVDVideoCodecFFmpeg::GetPictureCommon(VideoPicture* pVideoPicture)
   else
     pVideoPicture->color_range = m_hints.colorRange == AVCOL_RANGE_JPEG ? 1 : 0;
 
-  CLog::Log(LOGWARNING, "XXX PRI: %d TRC: %d SPC: %d RNG: %d", pVideoPicture->color_primaries, pVideoPicture->color_transfer,  pVideoPicture->color_space, (int)pVideoPicture->color_range);
-
   pVideoPicture->qp_table = av_frame_get_qp_table(m_pFrame,
                                                   &pVideoPicture->qstride,
                                                   &pVideoPicture->qscale_type);
