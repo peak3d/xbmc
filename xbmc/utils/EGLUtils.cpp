@@ -501,7 +501,7 @@ bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow, EGLint HD
 
   if (HDRcolorSpace != EGL_NONE)
   {
-    attribs.Add({EGL_GL_COLORSPACE_KHR, HDRcolorSpace});
+    attribs.Add({{EGL_GL_COLORSPACE_KHR, HDRcolorSpace}});
     config = m_eglHDRConfig;
   }
 
