@@ -330,6 +330,7 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool
                {EGL_RENDERABLE_TYPE, renderableType}});
 
   EGLConfig* currentConfig(hdr ? &m_eglHDRConfig : &m_eglConfig);
+
   if (hdr)
     attribs.Add({{EGL_COLOR_COMPONENT_TYPE_EXT, EGL_COLOR_COMPONENT_TYPE_FLOAT_EXT}});
 
@@ -501,7 +502,7 @@ bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow, EGLint HD
 
   if (HDRcolorSpace != EGL_NONE)
   {
-    attribs.Add({{EGL_GL_COLORSPACE_KHR, HDRcolorSpace}});
+    attribs.Add({{EGL_GL_COLORSPACE, HDRcolorSpace}});
     config = m_eglHDRConfig;
   }
 
