@@ -7,14 +7,16 @@
  */
 
 #include "WinSystemAndroidGLESContext.h"
-#include "VideoSyncAndroid.h"
 
+#include "VideoSyncAndroid.h"
 #include "cores/VideoPlayer/DVDCodecs/Video/DVDVideoCodec.h"
-#include "platform/android/activity/XBMCApp.h"
 #include "threads/SingleLock.h"
 #include "utils/log.h"
 
+#include "platform/android/activity/XBMCApp.h"
+
 #include <EGL/eglext.h>
+
 
 std::unique_ptr<CWinSystemBase> CWinSystemBase::CreateWinSystem()
 {
@@ -191,7 +193,7 @@ bool CWinSystemAndroidGLESContext::CreateSurface()
   return true;
 }
 
-bool CWinSystemAndroidGLESContext::SetHDR(const VideoPicture *videoPicture)
+bool CWinSystemAndroidGLESContext::SetHDR(const VideoPicture* videoPicture)
 {
   EGLint HDRColorSpace = EGL_NONE;
 

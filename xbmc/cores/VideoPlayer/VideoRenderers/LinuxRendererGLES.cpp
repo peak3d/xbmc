@@ -29,6 +29,7 @@
 #include "utils/log.h"
 #include "windowing/WinSystem.h"
 
+
 using namespace Shaders;
 
 CLinuxRendererGLES::CLinuxRendererGLES()
