@@ -223,7 +223,7 @@ bool CWinSystemAndroidGLESContext::SetHDR(const VideoPicture *videoPicture)
     m_HDRColorSpace = HDRColorSpace;
     m_displayMetadata = m_HDRColorSpace == EGL_NONE ? nullptr : std::unique_ptr<AVMasteringDisplayMetadata>(new AVMasteringDisplayMetadata(videoPicture->displayMetadata));
     // TODO: discuss with NVIDIA why this prevent turning HDR display off
-    //m_lightMetadata = !videoPicture || m_HDRColorSpace == EGL_NONE ? nullptr : std::unique_ptr<AVContentLightMetadata>(new AVContentLightMetadata(videoPicture->lightMetadata));
+    m_lightMetadata = !videoPicture || m_HDRColorSpace == EGL_NONE ? nullptr : std::unique_ptr<AVContentLightMetadata>(new AVContentLightMetadata(videoPicture->lightMetadata));
     m_pGLContext.DestroySurface();
     CreateSurface();
     m_pGLContext.BindContext();
