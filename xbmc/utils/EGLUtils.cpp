@@ -168,7 +168,7 @@ bool CEGLUtils::HasClientExtension(const std::string& name)
   return (exts.find(name) != exts.end());
 }
 
-void CEGLUtils::LogError(const std::string& what)
+void CEGLUtils::Log(int logLevel, const std::string& what)
 {
   EGLenum error = eglGetError();
   std::string errorStr = StringUtils::Format("0x%04X", error);
@@ -179,7 +179,7 @@ void CEGLUtils::LogError(const std::string& what)
     errorStr = eglError->second;
   }
 
-  CLog::Log(LOGERROR, "{} ({})", what.c_str(), errorStr);
+  CLog::Log(logLevel, "{} ({})", what.c_str(), errorStr);
 }
 
 CEGLContextUtils::CEGLContextUtils()
@@ -228,7 +228,7 @@ bool CEGLContextUtils::CreateDisplay(EGLNativeDisplayType nativeDisplay)
   m_eglDisplay = eglGetDisplay(nativeDisplay);
   if (m_eglDisplay == EGL_NO_DISPLAY)
   {
-    CEGLUtils::LogError("failed to get EGL display");
+    CEGLUtils::Log(LOGERROR, "failed to get EGL display");
     return false;
   }
 
@@ -255,7 +255,7 @@ bool CEGLContextUtils::CreatePlatformDisplay(void* nativeDisplay, EGLNativeDispl
 
     if (m_eglDisplay == EGL_NO_DISPLAY)
     {
-      CEGLUtils::LogError("failed to get platform display");
+      CEGLUtils::Log(LOGERROR, "failed to get platform display");
       return false;
     }
   }
@@ -273,7 +273,7 @@ bool CEGLContextUtils::InitializeDisplay(EGLint renderingApi)
 {
   if (!eglInitialize(m_eglDisplay, nullptr, nullptr))
   {
-    CEGLUtils::LogError("failed to initialize EGL display");
+    CEGLUtils::Log(LOGERROR, "failed to initialize EGL display");
     Destroy();
     return false;
   }
@@ -293,7 +293,7 @@ bool CEGLContextUtils::InitializeDisplay(EGLint renderingApi)
 
   if (eglBindAPI(renderingApi) != EGL_TRUE)
   {
-    CEGLUtils::LogError("failed to bind EGL API");
+    CEGLUtils::Log(LOGERROR, "failed to bind EGL API");
     Destroy();
     return false;
   }
@@ -334,19 +334,24 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool
   if (hdr)
     attribs.Add({{EGL_COLOR_COMPONENT_TYPE_EXT, EGL_COLOR_COMPONENT_TYPE_FLOAT_EXT}});
 
+  const char* errorMsg = nullptr;
+
   if (eglChooseConfig(m_eglDisplay, attribs.Get(), nullptr, 0, &numMatched) != EGL_TRUE)
-  {
-    CEGLUtils::LogError("failed to query number of EGL configs");
-    Destroy();
-    return false;
-  }
+    errorMsg = "failed to query number of EGL configs";
 
   std::vector<EGLConfig> eglConfigs(numMatched);
-
   if (eglChooseConfig(m_eglDisplay, attribs.Get(), eglConfigs.data(), numMatched, &numMatched) != EGL_TRUE)
+    errorMsg = "failed to find EGL configs with appropriate attributes";
+
+  if (errorMsg)
   {
-    CEGLUtils::LogError("failed to find EGL configs with appropriate attributes");
-    Destroy();
+    if (!hdr)
+    {
+      CEGLUtils::Log(LOGERROR, errorMsg);
+      Destroy();
+    }
+    else
+      CEGLUtils::Log(LOGINFO, errorMsg);
     return false;
   }
 
@@ -359,7 +364,7 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool
       break;
 
     if (eglGetConfigAttrib(m_eglDisplay, *currentConfig, EGL_NATIVE_VISUAL_ID, &id) != EGL_TRUE)
-      CEGLUtils::LogError("failed to query EGL attibute EGL_NATIVE_VISUAL_ID");
+      CEGLUtils::Log(LOGERROR, "failed to query EGL attibute EGL_NATIVE_VISUAL_ID");
 
     if (visualId == id)
       break;
@@ -377,7 +382,7 @@ bool CEGLContextUtils::ChooseConfig(EGLint renderableType, EGLint visualId, bool
   {
     EGLint value{0};
     if (eglGetConfigAttrib(m_eglDisplay, *currentConfig, eglAttribute.first, &value) != EGL_TRUE)
-      CEGLUtils::LogError(StringUtils::Format("failed to query EGL attibute %s", eglAttribute.second));
+      CEGLUtils::Log(LOGERROR, StringUtils::Format("failed to query EGL attibute %s", eglAttribute.second));
 
     // we only need to print the hex value if it's an actual EGL define
     CLog::Log(LOGDEBUG, "  %s: %s", eglAttribute.second, (value >= 0x3000 && value <= 0x3200) ? StringUtils::Format("0x%04x", value) : StringUtils::Format("%d", value));
@@ -390,7 +395,7 @@ EGLint CEGLContextUtils::GetConfigAttrib(EGLint attribute) const
 {
   EGLint value{0};
   if (eglGetConfigAttrib(m_eglDisplay, m_eglConfig, attribute, &value) != EGL_TRUE)
-    CEGLUtils::LogError("failed to query EGL attibute");
+    CEGLUtils::Log(LOGERROR, "failed to query EGL attibute");
   return value;
 }
 
@@ -426,7 +431,7 @@ bool CEGLContextUtils::CreateContext(CEGLAttributesVec contextAttribs)
     EGLint value{EGL_CONTEXT_PRIORITY_MEDIUM_IMG};
 
     if (eglQueryContext(m_eglDisplay, m_eglContext, EGL_CONTEXT_PRIORITY_LEVEL_IMG, &value) != EGL_TRUE)
-      CEGLUtils::LogError("failed to query EGL context attribute EGL_CONTEXT_PRIORITY_LEVEL_IMG");
+      CEGLUtils::Log(LOGERROR, "failed to query EGL context attribute EGL_CONTEXT_PRIORITY_LEVEL_IMG");
 
     if (value != EGL_CONTEXT_PRIORITY_HIGH_IMG)
       CLog::Log(LOGDEBUG, "Failed to obtain a high priority EGL context");
@@ -473,7 +478,7 @@ void CEGLContextUtils::SurfaceAttrib()
   {
     if (eglSurfaceAttrib(m_eglDisplay, m_eglSurface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED) != EGL_TRUE)
     {
-      CEGLUtils::LogError("failed to set EGL_BUFFER_PRESERVED swap behavior");
+      CEGLUtils::Log(LOGERROR, "failed to set EGL_BUFFER_PRESERVED swap behavior");
     }
   }
 }
@@ -482,7 +487,7 @@ void CEGLContextUtils::SurfaceAttrib(EGLint attribute, EGLint value)
 {
   if (eglSurfaceAttrib(m_eglDisplay, m_eglSurface, attribute, value) != EGL_TRUE)
   {
-    CEGLUtils::LogError("failed to set EGL_BUFFER_PRESERVED swap behavior");
+    CEGLUtils::Log(LOGERROR, "failed to set EGL_BUFFER_PRESERVED swap behavior");
   }
 }
 
@@ -510,7 +515,7 @@ bool CEGLContextUtils::CreateSurface(EGLNativeWindowType nativeWindow, EGLint HD
 
   if (m_eglSurface == EGL_NO_SURFACE)
   {
-    CEGLUtils::LogError("failed to create window surface");
+    CEGLUtils::Log(LOGERROR, "failed to create window surface");
     return false;
   }
 
@@ -538,7 +543,7 @@ bool CEGLContextUtils::CreatePlatformSurface(void* nativeWindow, EGLNativeWindow
 
     if (m_eglSurface == EGL_NO_SURFACE)
     {
-      CEGLUtils::LogError("failed to create platform window surface");
+      CEGLUtils::Log(LOGERROR, "failed to create platform window surface");
       return false;
     }
   }

@@ -119,7 +119,7 @@ void CWinSystemAndroidGLESContext::PresentRenderImpl(bool rendered)
   // Ignore EGL_BAD_SURFACE: It seems to happen during/after mode changes, but
   // we can't actually do anything about it
   if (rendered && !m_pGLContext.TrySwapBuffers())
-    CEGLUtils::LogError("eglSwapBuffers failed");
+    CEGLUtils::Log(LOGERROR, "eglSwapBuffers failed");
   CXBMCApp::get()->WaitVSync(1000);
 }
 

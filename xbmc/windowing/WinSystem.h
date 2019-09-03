@@ -156,6 +156,7 @@ public:
 
   std::shared_ptr<CDPMSSupport> GetDPMSManager();
   virtual bool SetHDR(const VideoPicture* videoPicture) { return false; };
+  virtual bool IsHDRDisplay() { return true; };
 
 protected:
   void UpdateDesktopResolution(RESOLUTION_INFO& newRes, const std::string &output, int width, int height, float refreshRate, uint32_t dwFlags);

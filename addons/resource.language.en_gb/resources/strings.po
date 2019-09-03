@@ -7075,7 +7075,10 @@ msgctxt "#13435"
 msgid "Enable HQ scalers for scaling above"
 msgstr ""
 
-#empty string with id 13436
+#: system/settings/settings.xml
+msgctxt "#13436"
+msgid "Switch display into HDR mode"
+msgstr ""
 
 #: system/settings/settings.xml
 msgctxt "#13437"
@@ -19048,7 +19051,13 @@ msgctxt "#36298"
 msgid "If enabled, a recording for the programme to remind will be scheduled when auto-closing the reminder popup, if supported by the PVR add-on and backend."
 msgstr ""
 
-#empty strings from id 36299 to 36301
+#. Description of setting with label #13436 "Switch display into HDR mode"
+#: system/settings/settings.xml
+msgctxt "#36299"
+msgid "When playing HDR media, let display perform HDR mapping instead using internal shaders."
+msgstr ""
+
+#empty strings from id 36300 to 36301
 
 #: system/settings/settings.xml
 msgctxt "#36302"
