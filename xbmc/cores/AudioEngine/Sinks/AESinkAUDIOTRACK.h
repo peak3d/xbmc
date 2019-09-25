@@ -42,7 +42,7 @@ public:
   static IAESink* Create(std::string &device, AEAudioFormat &desiredFormat);
 
 protected:
-  static jni::CJNIAudioTrack *CreateAudioTrack(int stream, int sampleRate, int channelMask, int encoding, int bufferSize);
+  jni::CJNIAudioTrack *CreateAudioTrack(int stream, int sampleRate, int channelMask, int encoding, int bufferSize);
   static bool IsSupported(int sampleRateInHz, int channelConfig, int audioFormat);
   static bool VerifySinkConfiguration(int sampleRate, int channelMask, int encoding);
   static void UpdateAvailablePCMCapabilities();
