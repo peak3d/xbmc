@@ -83,6 +83,7 @@ set(package_files strings.xml
                   src/interfaces/XBMCNsdManagerDiscoveryListener.java
                   src/interfaces/XBMCMediaDrmOnEventListener.java
                   src/interfaces/XBMCDisplayManagerDisplayListener.java
+                  src/interfaces/XBMCSafetyNet.java
                   src/model/TVEpisode.java
                   src/model/Movie.java
                   src/model/TVShow.java

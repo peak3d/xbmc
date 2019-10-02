@@ -171,6 +171,22 @@ void CMediaDrmCryptoSession::SetPropertyString(const std::string& name, const st
     m_mediaDrm->setPropertyString(name, value);
 }
 
+Buffer CMediaDrmCryptoSession::GetDeviceAttestation(const Buffer& nonce, const std::string& key)
+{
+  Attest(CharVecBuffer(nonce), key);
+  if (m_attestationEvent.WaitMSec(10000))
+  {
+    return Buffer(&m_attestationResponse[0], m_attestationResponse.size());
+  }
+  return Buffer();
+}
+
+void  CMediaDrmCryptoSession::OnAttestResponse(int status, const std::string& response)
+{
+  m_attestationResponse = status == 0 ? response : "";
+  m_attestationEvent.Set();
+}
+
 // Crypto methods
 Buffer CMediaDrmCryptoSession::Decrypt(const Buffer& cipherKeyId, const Buffer& input, const Buffer& iv)
 {

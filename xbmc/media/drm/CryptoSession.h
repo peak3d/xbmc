@@ -35,6 +35,7 @@ namespace DRM
     virtual void RemoveKeys() = 0;
     virtual void RestoreKeys(const std::string& keySetId) = 0;
     virtual void SetPropertyString(const std::string& name, const std::string& value) = 0;
+    virtual XbmcCommons::Buffer GetDeviceAttestation(const XbmcCommons::Buffer& nonce, const std::string& key) = 0;
 
     // Crypto methods
     virtual XbmcCommons::Buffer Decrypt(const XbmcCommons::Buffer& cipherKeyId, const XbmcCommons::Buffer& input, const XbmcCommons::Buffer& iv) = 0;

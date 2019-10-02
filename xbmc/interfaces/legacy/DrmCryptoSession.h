@@ -174,6 +174,27 @@ namespace XBMCAddon
       void SetPropertyString(const String &name, const String &value);
 #endif
 
+#ifdef DOXYGEN_SHOULD_USE_THIS
+      ///
+      /// \ingroup python_xbmcdrm
+      /// @brief \python_func{ GetDeviceAttestation(nonce, key) }
+      ///-----------------------------------------------------------------------
+      /// Request a device attestation, implementation is platform specific
+      ///
+      /// @param      Buffer nonce  cryptographic nonce
+      /// @param      String key    key for server verification
+      ///
+      /// @return     platform specific Buffer
+      ///
+      ///------------------------------------------------------------------------
+      /// @python_v19 New function added.
+      ///
+      GetDeviceAttestation(...);
+#else
+      XbmcCommons::Buffer GetDeviceAttestation(const XbmcCommons::Buffer& nonce, const String& key);
+#endif
+
+
 /*******************Crypto section *****************/
 
 #ifdef DOXYGEN_SHOULD_USE_THIS

@@ -9,6 +9,9 @@
 #pragma once
 
 #include "media/drm/CryptoSession.h"
+#include "threads/Event.h"
+
+#include "platform/android/activity/JNIXBMCSafetyNet.h"
 
 class CJNIMediaDrm;
 class CJNIMediaDrmCryptoSession;
@@ -34,7 +37,7 @@ namespace DRM
 
   class CharVecBuffer;
 
-  class CMediaDrmCryptoSession : public CCryptoSession
+  class CMediaDrmCryptoSession : public CCryptoSession, public jni::CJNIXBMCSafetyNet
   {
   public:
     static void Register();
@@ -48,12 +51,16 @@ namespace DRM
     void RemoveKeys() override;
     void RestoreKeys(const std::string& keySetId) override;
     void SetPropertyString(const std::string& name, const std::string& value) override;
+    XbmcCommons::Buffer GetDeviceAttestation(const XbmcCommons::Buffer& nonce, const std::string& key) override;
 
     // Crypto methods
     XbmcCommons::Buffer Decrypt(const XbmcCommons::Buffer& cipherKeyId, const XbmcCommons::Buffer& input, const XbmcCommons::Buffer& iv) override;
     XbmcCommons::Buffer Encrypt(const XbmcCommons::Buffer& cipherKeyId, const XbmcCommons::Buffer& input, const XbmcCommons::Buffer& iv) override;
     XbmcCommons::Buffer Sign(const XbmcCommons::Buffer& macKeyId, const XbmcCommons::Buffer& message) override;
     bool Verify(const XbmcCommons::Buffer& macKeyId, const XbmcCommons::Buffer& message, const XbmcCommons::Buffer& signature ) override;
+
+  protected:
+    void OnAttestResponse(int status, const std::string& response) override;
 
   private:
     static CCryptoSession* Create(const std::string& UUID, const std::string& cipherAlgo, const std::string& hmacAlgo);
@@ -71,6 +78,9 @@ namespace DRM
     bool m_hasKeys;
 
     CharVecBuffer* m_sessionId;
+
+    CEvent m_attestationEvent;
+    std::string m_attestationResponse;
   };
 
 } //namespace

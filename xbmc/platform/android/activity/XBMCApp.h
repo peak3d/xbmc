@@ -109,7 +109,8 @@ public:
   void onDisplayAdded(int displayId) override;
   void onDisplayChanged(int displayId) override;
   void onDisplayRemoved(int displayId) override;
-  jni::jhobject getDisplayListener() { return m_displayListener.get_raw(); }
+  jni::jhobject getDisplayListener() const { return m_displayListener.get_raw(); }
+  jni::jhobject getContext() const { return CJNIContext::get_raw(); };
 
   bool isValid() { return m_activity != NULL; }
   const ANativeActivity *getActivity() const { return m_activity; }

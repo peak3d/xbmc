@@ -48,4 +48,7 @@ dependencies {
     // New support library to for channels/programs development.
     implementation 'com.android.support:support-tv-provider:28.0.0'
     implementation 'com.google.code.gson:gson:2.8.0'
+    implementation ('com.google.android.gms:play-services-safetynet:16.0.0') {
+      exclude group: 'com.android.support', module: 'support-v4'
+    }
 }

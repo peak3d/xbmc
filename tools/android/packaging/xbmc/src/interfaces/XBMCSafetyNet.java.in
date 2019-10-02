@@ -1,0 +1,70 @@
+package @APP_PACKAGE@;
+
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.safetynet.SafetyNet;
+import com.google.android.gms.safetynet.SafetyNetApi;
+import com.google.android.gms.safetynet.SafetyNetClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+
+import android.content.Context;
+import android.util.Log;
+
+
+/**
+ * Created by Team Kodi 2019/10/01.
+ */
+
+public class XBMCSafetyNet
+{
+  native void _onAttestResponse(int status, String response);
+
+  private static final String TAG = "XBMCSafetyNet";
+
+  public void Attest(Context context, byte[] nonce, String apiKey)
+  {
+    Log.i(TAG, "Sending SafetyNet API request.");
+
+    SafetyNetClient client = SafetyNet.getClient(context);
+      Task<SafetyNetApi.AttestationResponse> task = client.attest(nonce, apiKey);
+
+    task.addOnSuccessListener(mSuccessListener)
+      .addOnFailureListener(mFailureListener);
+  }
+
+  private OnSuccessListener<SafetyNetApi.AttestationResponse> mSuccessListener =
+    new OnSuccessListener<SafetyNetApi.AttestationResponse>()
+  {
+    @Override
+    public void onSuccess(SafetyNetApi.AttestationResponse attestationResponse)
+    {
+      Log.d(TAG, "SafetyNet success!");
+      _onAttestResponse(0, attestationResponse.getJwsResult());
+    }
+  };
+
+  private OnFailureListener mFailureListener = new OnFailureListener()
+  {
+    @Override
+    public void onFailure(Exception e)
+    {
+      // An error occurred while communicating with the service.
+      if (e instanceof ApiException)
+      {
+        // An error with the Google Play Services API contains some additional details.
+        ApiException apiException = (ApiException) e;
+        Log.d(TAG, "Error: " +
+          CommonStatusCodes.getStatusCodeString(apiException.getStatusCode()) + ": " +
+          apiException.getStatusMessage());
+      }
+      else
+      {
+        // A different, unknown type of error occurred.
+        Log.d(TAG, "ERROR! " + e.getMessage());
+      }
+      _onAttestResponse(-99, "");
+    }
+  };
+}

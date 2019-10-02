@@ -68,6 +68,13 @@ namespace XBMCAddon
         return m_cryptoSession->SetPropertyString(name, value);
     }
 
+    Buffer CryptoSession::GetDeviceAttestation(const Buffer& nonce, const String& key)
+    {
+      if (m_cryptoSession)
+        return m_cryptoSession->GetDeviceAttestation(nonce, key);
+      return Buffer();
+    }
+
     /*******************Crypto section *****************/
 
     Buffer CryptoSession::Decrypt(const Buffer &cipherKeyId, const Buffer &input, const Buffer &iv)
