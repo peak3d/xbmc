@@ -54,6 +54,14 @@ public class XBMCVideoView extends SurfaceView implements
     }
   }
 
+  public static XBMCVideoView createSecureVideoView()
+  {
+    XBMCVideoView vw = createVideoView();
+    if (vw != null)
+      vw.setSecure(true);
+    return vw;
+  }
+
   public XBMCVideoView(Context context)
   {
     super(context);

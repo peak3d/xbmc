@@ -25,7 +25,7 @@ public:
 
   static void RegisterNatives(JNIEnv* env);
 
-  static CJNIXBMCVideoView* createVideoView(CJNISurfaceHolderCallback* callback);
+  static CJNIXBMCVideoView* createVideoView(CJNISurfaceHolderCallback* callback, bool secure);
 
   // CJNISurfaceHolderCallback interface
   void surfaceChanged(CJNISurfaceHolder holder, int format, int width, int height) override;

@@ -50,12 +50,13 @@ CJNIXBMCVideoView::CJNIXBMCVideoView(const jni::jhobject &object)
 {
 }
 
-CJNIXBMCVideoView* CJNIXBMCVideoView::createVideoView(CJNISurfaceHolderCallback* callback)
+CJNIXBMCVideoView* CJNIXBMCVideoView::createVideoView(CJNISurfaceHolderCallback* callback, bool secure)
 {
   std::string signature = "()L" + s_className + ";";
 
+
   CJNIXBMCVideoView* pvw = new CJNIXBMCVideoView(call_static_method<jhobject>(xbmc_jnienv(), CJNIContext::getClassLoader().loadClass(GetDotClassName(s_className)),
-                                                                              "createVideoView", signature.c_str()));
+                                                                              secure ? "createSecureVideoView" : "createVideoView", signature.c_str()));
   if (!*pvw)
   {
     CLog::Log(LOGERROR, "Cannot instantiate VideoView!!");

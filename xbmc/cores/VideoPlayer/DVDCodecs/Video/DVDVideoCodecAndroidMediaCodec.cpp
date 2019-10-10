@@ -703,7 +703,7 @@ bool CDVDVideoCodecAndroidMediaCodec::Open(CDVDStreamInfo &hints, CDVDCodecOptio
 
   if (m_render_surface)
   {
-    m_jnivideoview.reset(CJNIXBMCVideoView::createVideoView(this));
+    m_jnivideoview.reset(CJNIXBMCVideoView::createVideoView(this, m_needSecureDecoder));
     if (!m_jnivideoview || !m_jnivideoview->waitForSurface(2000))
     {
       CLog::Log(LOGERROR, "CDVDVideoCodecAndroidMediaCodec: VideoView creation failed!!");
