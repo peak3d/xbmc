@@ -639,6 +639,23 @@ bool CVideoPlayerVideo::ProcessDecoderOutput(double &frametime, double &pts)
     return false;
   }
 
+  // if decoder had an fatal error, stop the playback
+  if (decoderState == CDVDVideoCodec::VC_FATAL)
+  {
+    CLog::Log(LOGDEBUG, "CVideoPlayerVideo - video decoder returned fatal");
+    m_messageParent.Put(new CDVDMsg(CDVDMsg::PLAYER_ABORT));
+    return false;
+  }
+
+  // if decoder had an fatal error, stop the decoder
+  if (decoderState == CDVDVideoCodec::VC_FATAL)
+  {
+    CLog::Log(LOGDEBUG, "CVideoPlayerVideo - video decoder returned fatal");
+    m_messageParent.Put(new CDVDMsg(CDVDMsg::PLAYER_ABORT));
+    StopThread();
+    return false;
+  }
+
   if (decoderState == CDVDVideoCodec::VC_EOF)
   {
     if (m_syncState == IDVDStreamPlayer::SYNC_STARTING)
