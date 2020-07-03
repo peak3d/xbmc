@@ -131,7 +131,7 @@ public:
 
 protected:
   void Dispose();
-  void FlushInternal(void);
+  void WaitFramesRendered();
   void SignalEndOfStream();
   void InjectExtraData(CJNIMediaFormat& mediaformat);
   std::vector<uint8_t> GetHDRStaticMetadata();
@@ -152,7 +152,7 @@ protected:
   std::string m_formatname;
   bool m_opened;
   bool m_needSecureDecoder = false;
-  int m_codecControlFlags;
+  int m_codecControlFlags = 0;
   int m_state;
 
   std::shared_ptr<CJNIXBMCVideoView> m_jnivideoview;
@@ -166,6 +166,7 @@ protected:
 
   amc_demux m_demux_pkt;
   std::shared_ptr<CMediaCodecVideoBufferPool> m_videoBufferPool;
+  CMediaCodecVideoBuffer* m_lastVideoBuffer = nullptr;
 
   uint32_t m_OutputDuration, m_fpsDuration;
   int64_t m_lastPTS;
@@ -177,7 +178,7 @@ protected:
   CBitstreamConverter* m_bitstream;
   VideoPicture m_videobuffer;
 
-  int m_indexInputBuffer;
+  int m_indexInputBuffer = -1;
   bool m_render_surface;
   mpeg2_sequence* m_mpeg2_sequence;
   int m_src_offset[4];
